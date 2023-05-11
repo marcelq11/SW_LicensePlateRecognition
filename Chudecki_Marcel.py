@@ -12,8 +12,8 @@ def load_images_from_folder(folder_path):
             images.append(img)
     return images
 def find_plate(img):
-    
     temp = 0
+    temp_list = []
     img = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
@@ -37,15 +37,24 @@ def find_plate(img):
                 if side_len < min_len:
                     min_len = side_len
             ratio = max_len / min_len
-            print(max_len)
             if ratio > 3 and ratio < 6 and max_len < int(0.8 * img.shape[1]):
-                cv2.drawContours(img, [approx], 0, (0, 0, 255), 2)
+                temp_list.append(approx)
+                # cv2.drawContours(img, [approx], 0, (0, 0, 255), 2)
                 temp+=1
+    if temp > 0:
+        temp_size = 99999999
+        for i in temp_list:
+            if cv2.contourArea(i) < temp_size:
+                temp_size = cv2.contourArea(i)
+                temp_contour = i
+        cv2.drawContours(img, [temp_contour], 0, (0, 0, 255), 2)
     if temp == 0:
         img = find_plate2(img)
     return img
 
 def find_plate2(img):
+    temp = 0
+    temp_list = []
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_blur = cv2.bilateralFilter(img_gray, 15, 35, 100)
     thresh = cv2.adaptiveThreshold(img_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 9, 3)
@@ -69,7 +78,16 @@ def find_plate2(img):
                     min_len = side_len
             ratio = max_len / min_len
             if ratio > 3 and ratio < 6 and max_len < int(0.8 * img.shape[1]):
-                cv2.drawContours(img, [approx], 0, (0, 0, 255), 2)
+                temp_list.append(approx)
+                # cv2.drawContours(img, [approx], 0, (0, 0, 255), 2)
+                temp += 1
+        if temp > 0:
+            temp_size = 99999999
+            for i in temp_list:
+                if cv2.contourArea(i) < temp_size:
+                    temp_size = cv2.contourArea(i)
+                    temp_contour = i
+            cv2.drawContours(img, [temp_contour], 0, (0, 0, 255), 2)
     return img
 
 
