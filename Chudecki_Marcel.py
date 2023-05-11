@@ -82,6 +82,17 @@ def find_plate2(img):
 
 for img in load_images_from_folder('train'):
     img = find_plate(img)
+    thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 9, 3)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
+    for contour in contours:
+        if cv2.contourArea(contour) > 2000:
+            [X, Y, W, H] = cv2.boundingRect(contour)
+            cv2.rectangle(img, (X, Y), (X + W, Y + H), (255), 2)
+
     while(1):
         cv2.imshow('img', img)
         if cv2.waitKey(20) & 0xFF == 27:
